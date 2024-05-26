@@ -4,9 +4,11 @@ import { useRef } from "react";
 import useSWR from "swr";
 import axios, { AxiosResponse } from "axios";
 
-import { API_URL } from "../constants/url";
+// import { API_URL } from "../constants/url";
 import Todo from "./components/Todo";
 import { TodoType, InsertTodoType } from "./model/Todo";
+
+const API_URL = "http://localhost:8080/todo";
 
 async function getFetcher(key: string) {
   const res: AxiosResponse<TodoType[], null> = await axios.get(key);
@@ -32,7 +34,7 @@ async function postFetcher(
 export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: todos, mutate } = useSWR(`${API_URL}`, getFetcher);
+  const { data: todos, mutate } = useSWR(API_URL, getFetcher);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +42,7 @@ export default function Home() {
     if (!inputRef.current || inputRef.current.value.trim() === "") return;
 
     const response: AxiosResponse<TodoType, InsertTodoType> = await postFetcher(
-      `${API_URL}`,
+      API_URL,
       {
         title: inputRef.current.value,
       }

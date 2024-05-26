@@ -1,42 +1,50 @@
 import React, { useState } from "react";
+import axios, { AxiosResponse } from "axios";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
-import { TodoType } from "../model/Todo";
-import { API_URL } from "../../constants/url";
-import axios from "axios";
-import useSWRMutation from "swr/mutation";
+
+import { TodoType, UpdateTodoType } from "../model/Todo";
+// import { API_URL } from "../../constants/url";
+
+const API_URL = "http://localhost:8080/todo";
 
 type TodoProps = {
   todo: TodoType;
 };
+
+async function putFetcher(
+  key: string,
+  data: UpdateTodoType
+): Promise<AxiosResponse<TodoType, TodoType>> {
+  const res: AxiosResponse<TodoType, TodoType> = await axios.put(key, data, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return res;
+}
 
 export default function Todo({ todo }: TodoProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingTitle, setEditingTitle] = useState<string>(todo.title);
 
-  // TODO
-  const { trigger } = useSWRMutation(
-    `${API_URL}/${todo.id}`,
-    async (url: string) => {
-      const response = await axios.put(
-        url,
-        { isCompleted: !todo.isCompleted },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      return response.data;
-    },
-    {
-      onSuccess: () => {
-        console.log("Success");
-      },
+  // Wip...
+  async function updateTodo() {
+    const response: AxiosResponse<UpdateTodoType, UpdateTodoType> =
+      await putFetcher(`${API_URL}/${todo.id}`, {
+        isCompleted: !todo.isCompleted,
+      });
+    if (response.status === 204) {
+      console.log(response.status);
+      router.refresh();
     }
-  );
+  }
 
-  // TODO
   async function handleEdit() {
     setIsEditing(!isEditing);
     if (isEditing) {
-      // ここで編集完了時の処理を追加
+      // 編集完了時の処理を追加
     }
   }
 
@@ -50,9 +58,7 @@ export default function Todo({ todo }: TodoProps) {
               name={`todo-${todo.id}`}
               type="checkbox"
               checked={todo.isCompleted}
-              onChange={() => {
-                trigger();
-              }}
+              onChange={() => updateTodo()}
               className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
             />
             <label className="ml-3 block text-gray-900">
