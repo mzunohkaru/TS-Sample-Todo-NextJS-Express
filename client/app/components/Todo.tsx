@@ -1,50 +1,79 @@
 import React, { useState } from "react";
-import axios, { AxiosResponse } from "axios";
-import useSWR from "swr";
-import { useRouter } from "next/navigation";
-
-import { TodoType, UpdateTodoType } from "../model/Todo";
-// import { API_URL } from "../../constants/url";
-
-const API_URL = "http://localhost:8080/todo";
+import axios from "axios";
+import { TodoType } from "../model/Todo";
+import { useTodos } from "../hooks/useTodos";
+import { API_URL } from "@/constants/url";
 
 type TodoProps = {
   todo: TodoType;
 };
 
-async function putFetcher(
-  key: string,
-  data: UpdateTodoType
-): Promise<AxiosResponse<TodoType, TodoType>> {
-  const res: AxiosResponse<TodoType, TodoType> = await axios.put(key, data, {
+async function putFetcher(key: string, body: any) {
+  const response = await axios.put(key, body, {
     headers: {
       "Content-Type": "application/json",
     },
   });
-  return res;
+  return response;
 }
 
-export default function Todo({ todo }: TodoProps) {
-  const router = useRouter();
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editingTitle, setEditingTitle] = useState<string>(todo.title);
+async function deleteFetcher(key: string) {
+  const response = await axios.delete(key, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return response;
+}
 
-  // Wip...
-  async function updateTodo() {
-    const response: AxiosResponse<UpdateTodoType, UpdateTodoType> =
-      await putFetcher(`${API_URL}/${todo.id}`, {
-        isCompleted: !todo.isCompleted,
-      });
-    if (response.status === 204) {
-      console.log(response.status);
-      router.refresh();
-    }
-  }
+const Todo = ({ todo }: TodoProps) => {
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editedTitle, setEditedTitle] = useState<string>(todo.title);
+  const { todos, isLoading, error, mutate } = useTodos();
 
   async function handleEdit() {
     setIsEditing(!isEditing);
     if (isEditing) {
-      // 編集完了時の処理を追加
+      const response = await putFetcher(`${API_URL}/${todo.id}`, {
+        title: editedTitle,
+      });
+
+      if (response.status === 201) {
+        const editedTodo = response.data;
+        const updatedTodos = todos.map((todo: TodoType) =>
+          todo.id === editedTodo.id ? editedTodo : todo
+        );
+        mutate(updatedTodos);
+      }
+    }
+  }
+
+  async function handleDelete(id: number) {
+    const response = await deleteFetcher(`${API_URL}/${todo.id}`);
+
+    if (response.status === 201) {
+      const updatedTodos = todos.filter((todo: TodoType) => todo.id !== id);
+      mutate(updatedTodos);
+    }
+  }
+
+  async function toggleTodoCompletion(isCompleted: boolean) {
+    const response = await putFetcher(`${API_URL}/${todo.id}`, {
+      isCompleted: !isCompleted,
+    });
+
+    if (response.status === 201) {
+      try {
+        const editedTodo = response.data;
+        const updatedTodos = todos.map((todo: TodoType) =>
+          todo.id === editedTodo.id ? editedTodo : todo
+        );
+        mutate(updatedTodos);
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+      }
+    } else {
+      console.error("Failed to fetch or invalid content type");
     }
   }
 
@@ -54,20 +83,21 @@ export default function Todo({ todo }: TodoProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <input
-              id={`todo-${todo.id}`}
-              name={`todo-${todo.id}`}
+              id="todo1"
+              name="todo1"
               type="checkbox"
               checked={todo.isCompleted}
-              onChange={() => updateTodo()}
-              className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+              onChange={() => toggleTodoCompletion(todo.isCompleted)}
+              className="h-4 w-4 text-teal-600 focus:ring-teal-500
+            border-gray-300 rounded"
             />
             <label className="ml-3 block text-gray-900">
               {isEditing ? (
                 <input
                   type="text"
-                  value={editingTitle}
-                  onChange={(e) => setEditingTitle(e.target.value)}
-                  className="border-2 border-gray-300 rounded w-20"
+                  className="border rounded py-1 px-2"
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
                 />
               ) : (
                 <span
@@ -80,14 +110,17 @@ export default function Todo({ todo }: TodoProps) {
               )}
             </label>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className={`flex items-center space-x-2 `}>
             <button
               onClick={handleEdit}
               className="duration-150 bg-green-600 hover:bg-green-700 text-white font-medium py-1 px-2 rounded"
             >
               {isEditing ? "Save" : "✒"}
             </button>
-            <button className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-2 rounded">
+            <button
+              onClick={() => handleDelete(todo.id)}
+              className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-2 rounded"
+            >
               ✖
             </button>
           </div>
@@ -95,4 +128,6 @@ export default function Todo({ todo }: TodoProps) {
       </li>
     </div>
   );
-}
+};
+
+export default Todo;

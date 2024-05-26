@@ -19,20 +19,20 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  const { isCompleted } = req.body;
-  await prisma.todo.update({
+  const { title, isCompleted } = req.body;
+  const todo = await prisma.todo.update({
     where: { id: Number(id) },
-    data: { isCompleted },
+    data: { title, isCompleted },
   });
-  res.status(204).json({ message: "Todo updated successfully" });
+  res.status(201).json(todo);
 });
 
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  await prisma.todo.delete({
+  const todo = await prisma.todo.delete({
     where: { id: Number(id) },
   });
-  res.status(204).json({ message: "Todo deleted successfully" });
+  res.status(201).json(todo);
 });
 
 export default router;

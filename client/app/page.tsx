@@ -1,64 +1,45 @@
 "use client";
 
-import { useRef } from "react";
-import useSWR from "swr";
-import axios, { AxiosResponse } from "axios";
-
-// import { API_URL } from "../constants/url";
 import Todo from "./components/Todo";
+import axios, { AxiosResponse } from "axios";
+import { useRef } from "react";
 import { TodoType, InsertTodoType } from "./model/Todo";
+import { useTodos } from "./hooks/useTodos";
+import { API_URL } from "@/constants/url";
 
-const API_URL = "http://localhost:8080/todo";
-
-async function getFetcher(key: string) {
-  const res: AxiosResponse<TodoType[], null> = await axios.get(key);
-  return res.data;
-}
-
-async function postFetcher(
-  key: string,
-  data: InsertTodoType
-): Promise<AxiosResponse<TodoType, InsertTodoType>> {
-  const res: AxiosResponse<TodoType, InsertTodoType> = await axios.post(
-    key,
-    data,
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  return res;
+async function postFetcher(key: string, data: InsertTodoType) {
+  const response = await axios.post(key, data);
+  return response;
 }
 
 export default function Home() {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const { todos, isLoading, error, mutate } = useTodos();
 
-  const { data: todos, mutate } = useSWR(API_URL, getFetcher);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (!inputRef.current || inputRef.current.value.trim() === "") return;
 
-    const response: AxiosResponse<TodoType, InsertTodoType> = await postFetcher(
-      API_URL,
-      {
-        title: inputRef.current.value,
-      }
-    );
+    const response = await postFetcher(`${API_URL}`, {
+      title: inputRef.current?.value,
+      isCompleted: false,
+    });
 
     if (response.status === 201) {
-      mutate([...(todos || []), response.data]);
-      inputRef.current.value = "";
+      const newTodo = response.data;
+      mutate([...todos, newTodo]);
+      if (inputRef.current?.value) {
+        inputRef.current.value = "";
+      }
     }
-  };
+  }
 
   return (
     <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden mt-32 py-4 px-4">
       <div className="px-4 py-2">
         <h1 className="text-gray-800 font-bold text-2xl uppercase">
-          Todo List
+          To-Do List
         </h1>
       </div>
       <form
@@ -68,8 +49,8 @@ export default function Home() {
         <div className="flex items-center border-b-2 border-teal-500 py-2">
           <input
             className="appearance-none bg-transparent
-      border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight
-      focus:outline-none"
+        border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight
+        focus:outline-none"
             type="text"
             placeholder="Add a task"
             ref={inputRef}
@@ -83,11 +64,9 @@ export default function Home() {
         </div>
       </form>
       <ul className="divide-y divide-gray-200 px-4">
-        {todos ? (
-          todos.map((todo: TodoType) => <Todo key={todo.id} todo={todo} />)
-        ) : (
-          <p>Loading...</p>
-        )}
+        {todos?.slice().sort((a: TodoType, b: TodoType) => a.id - b.id).map((todo: TodoType) => (
+          <Todo key={todo.id} todo={todo} />
+        ))}
       </ul>
     </div>
   );

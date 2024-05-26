@@ -6,9 +6,6 @@ export type TodoType = {
 
 export type InsertTodoType = {
     title: string;
-}
-
-export type UpdateTodoType = {
     isCompleted: boolean;
 }
 
