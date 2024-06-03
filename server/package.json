@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.ts",
+    "build": "tsc",
     "db:init": "prisma init",
     "db:migrate": "npx prisma migrate dev --name <migration-name>",
     "db:generate": "npx prisma generate",

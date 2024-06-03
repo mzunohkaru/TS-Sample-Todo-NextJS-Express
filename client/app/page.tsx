@@ -1,6 +1,6 @@
 "use client";
 
-import Todo from "./components/Todo";
+import { Todo } from "./components/Todo";
 import axios, { AxiosResponse } from "axios";
 import { useRef } from "react";
 import { TodoType, InsertTodoType } from "./model/Todo";
@@ -64,9 +64,12 @@ export default function Home() {
         </div>
       </form>
       <ul className="divide-y divide-gray-200 px-4">
-        {todos?.slice().sort((a: TodoType, b: TodoType) => a.id - b.id).map((todo: TodoType) => (
-          <Todo key={todo.id} todo={todo} />
-        ))}
+        {todos
+          ?.slice()
+          .sort((a: TodoType, b: TodoType) => a.id - b.id)
+          .map((todo: TodoType) => (
+            <Todo key={todo.id} todo={todo} />
+          ))}
       </ul>
     </div>
   );

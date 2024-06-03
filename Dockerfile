@@ -7,7 +7,7 @@ ENV TZ=Asia/Tokyo
 # アプリケーションディレクトリを作成
 WORKDIR /usr/src/app
 
-# アプリケーションの依存関係をインストール
+# サーバーの依存関係をインストール
 COPY server/package*.json ./
 RUN npm install
 

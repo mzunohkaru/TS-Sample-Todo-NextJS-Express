@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 
 import todoRouter from "./router/todo";
+import { errorHandler } from "./middleware/error-handler";
 
 const app = express();
 const PORT = 8080;
@@ -17,6 +18,8 @@ app.use(express.json());
 app.use(cors(corsOptions));
 
 app.use("/todo", todoRouter);
+
+app.use(errorHandler);
 
 app.get("/", (req, res) => {
   res.send("Running Server!");

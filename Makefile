@@ -1,6 +1,6 @@
 up:
 	@echo "Dockerコンテナを起動します..."
-	@docker-compose -f docker-compose.local.yaml up --build
+	@docker-compose -f docker-compose.local.yaml up -d --build
 	@echo "Dockerコンテナが起動しました。"
 
 ps:

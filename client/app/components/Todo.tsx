@@ -26,7 +26,7 @@ async function deleteFetcher(key: string) {
   return response;
 }
 
-const Todo = ({ todo }: TodoProps) => {
+export const Todo = ({ todo }: TodoProps) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedTitle, setEditedTitle] = useState<string>(todo.title);
   const { todos, isLoading, error, mutate } = useTodos();
@@ -129,5 +129,3 @@ const Todo = ({ todo }: TodoProps) => {
     </div>
   );
 };
-
-export default Todo;
