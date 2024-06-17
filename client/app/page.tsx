@@ -7,32 +7,33 @@ import { TodoType, InsertTodoType } from "./model/Todo";
 import { useTodos } from "./hooks/useTodos";
 import { API_URL } from "@/constants/url";
 
-async function postFetcher(key: string, data: InsertTodoType) {
-  const response = await axios.post(key, data);
-  return response;
-}
-
 export default function Home() {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const { todos, isLoading, error, mutate } = useTodos();
+  const { todosData, mutate, createTodo, updateTodoTitle, updateTodoCompleted, deleteTodo } =
+    useTodos();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (!inputRef.current || inputRef.current.value.trim() === "") return;
 
-    const response = await postFetcher(`${API_URL}`, {
-      title: inputRef.current?.value,
-      isCompleted: false,
-    });
+    await createTodo(inputRef.current.value);
 
-    if (response.status === 201) {
-      const newTodo = response.data;
-      mutate([...todos, newTodo]);
-      if (inputRef.current?.value) {
-        inputRef.current.value = "";
-      }
+    if (inputRef.current?.value) {
+      inputRef.current.value = "";
     }
+  }
+
+  async function handleEditTitle(id: number, title: string) {
+    await updateTodoTitle(id, title);
+  }
+
+  async function handleEditCompleted(id: number, isCompleted: boolean) {
+    await updateTodoCompleted(id, isCompleted);
+  }
+
+  async function handleDelete(id: number) {
+    await deleteTodo(id);
   }
 
   return (
@@ -64,11 +65,17 @@ export default function Home() {
         </div>
       </form>
       <ul className="divide-y divide-gray-200 px-4">
-        {todos
+        {todosData
           ?.slice()
           .sort((a: TodoType, b: TodoType) => a.id - b.id)
           .map((todo: TodoType) => (
-            <Todo key={todo.id} todo={todo} />
+            <Todo
+              key={todo.id}
+              todo={todo}
+              handleEditTitle={handleEditTitle}
+              handleEditCompleted={handleEditCompleted}
+              handleDelete={handleDelete}
+            />
           ))}
       </ul>
     </div>

@@ -6,75 +6,24 @@ import { API_URL } from "@/constants/url";
 
 type TodoProps = {
   todo: TodoType;
+  handleEditTitle: (id: number, title: string) => void;
+  handleEditCompleted: (id: number, isCompleted: boolean) => void;
+  handleDelete: (id: number) => void;
 };
 
-async function putFetcher(key: string, body: any) {
-  const response = await axios.put(key, body, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  return response;
-}
-
-async function deleteFetcher(key: string) {
-  const response = await axios.delete(key, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  return response;
-}
-
-export const Todo = ({ todo }: TodoProps) => {
+export const Todo = ({ todo, handleEditTitle, handleEditCompleted, handleDelete}: TodoProps) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedTitle, setEditedTitle] = useState<string>(todo.title);
-  const { todos, isLoading, error, mutate } = useTodos();
 
   async function handleEdit() {
     setIsEditing(!isEditing);
     if (isEditing) {
-      const response = await putFetcher(`${API_URL}/${todo.id}`, {
-        title: editedTitle,
-      });
-
-      if (response.status === 201) {
-        const editedTodo = response.data;
-        const updatedTodos = todos.map((todo: TodoType) =>
-          todo.id === editedTodo.id ? editedTodo : todo
-        );
-        mutate(updatedTodos);
-      }
-    }
-  }
-
-  async function handleDelete(id: number) {
-    const response = await deleteFetcher(`${API_URL}/${todo.id}`);
-
-    if (response.status === 201) {
-      const updatedTodos = todos.filter((todo: TodoType) => todo.id !== id);
-      mutate(updatedTodos);
+      handleEditTitle(todo.id, editedTitle);
     }
   }
 
   async function toggleTodoCompletion(isCompleted: boolean) {
-    const response = await putFetcher(`${API_URL}/${todo.id}`, {
-      isCompleted: !isCompleted,
-    });
-
-    if (response.status === 201) {
-      try {
-        const editedTodo = response.data;
-        const updatedTodos = todos.map((todo: TodoType) =>
-          todo.id === editedTodo.id ? editedTodo : todo
-        );
-        mutate(updatedTodos);
-      } catch (error) {
-        console.error("Error parsing JSON:", error);
-      }
-    } else {
-      console.error("Failed to fetch or invalid content type");
-    }
+    handleEditCompleted(todo.id, !isCompleted);
   }
 
   return (
@@ -119,7 +68,7 @@ export const Todo = ({ todo }: TodoProps) => {
             </button>
             <button
               onClick={() => handleDelete(todo.id)}
-              className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-2 rounded"
+              className="bg-red-500 hover:bg-red-6000 text-white font-medium py-1 px-2 rounded"
             >
               ✖
             </button>
