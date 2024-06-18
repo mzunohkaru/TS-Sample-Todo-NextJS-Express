@@ -34,7 +34,7 @@ async function deleteFetcher(key: string) {
 export const useTodos = () => {
   const { data: todosData, isLoading, error, mutate } = useSWR(`${API_URL}`, getFetcher);
 
-  async function createTodo(title: string) {
+  const createTodo = async (title: string) => {
     const response = await postFetcher(`${API_URL}`, {
       title: title,
       isCompleted: false,
@@ -42,21 +42,21 @@ export const useTodos = () => {
     mutate();
   }
 
-  async function updateTodoTitle(id: number, title: string) {
+  const updateTodoTitle = async (id: number, title: string) => {
     await putFetcher(`${API_URL}/${id}`, {
       title: title,
     });
     mutate();
   }
 
-  async function updateTodoCompleted(id: number, isCompleted: boolean) {
+  const updateTodoCompleted = async (id: number, isCompleted: boolean) => {
     await putFetcher(`${API_URL}/${id}`, {
       isCompleted: isCompleted,
     });
     mutate();
   }
 
-  async function deleteTodo(id: number) {
+  const deleteTodo = async (id: number) => {
     await deleteFetcher(`${API_URL}/${id}`);
     mutate();
   }

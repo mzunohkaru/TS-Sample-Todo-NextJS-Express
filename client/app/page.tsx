@@ -9,10 +9,20 @@ import { API_URL } from "@/constants/url";
 
 export default function Home() {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const { todosData, mutate, createTodo, updateTodoTitle, updateTodoCompleted, deleteTodo } =
-    useTodos();
+  const {
+    todosData,
+    mutate,
+    createTodo,
+    updateTodoTitle,
+    updateTodoCompleted,
+    deleteTodo,
+  } = useTodos();
 
-  async function handleSubmit(e: React.FormEvent) {
+  const refreshData = async () => {
+    await mutate(API_URL);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!inputRef.current || inputRef.current.value.trim() === "") return;
@@ -22,27 +32,34 @@ export default function Home() {
     if (inputRef.current?.value) {
       inputRef.current.value = "";
     }
-  }
+  };
 
-  async function handleEditTitle(id: number, title: string) {
+  const handleEditTitle = async (id: number, title: string) => {
     await updateTodoTitle(id, title);
-  }
+  };
 
-  async function handleEditCompleted(id: number, isCompleted: boolean) {
+  const handleEditCompleted = async (id: number, isCompleted: boolean) => {
     await updateTodoCompleted(id, isCompleted);
-  }
+  };
 
-  async function handleDelete(id: number) {
+  const handleDelete = async (id: number) => {
     await deleteTodo(id);
-  }
+  };
 
   return (
     <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden mt-32 py-4 px-4">
-      <div className="px-4 py-2">
+      <div className="px-4 py-2 flex items-center justify-between">
         <h1 className="text-gray-800 font-bold text-2xl uppercase">
           To-Do List
         </h1>
+        <button
+          onClick={refreshData}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Refresh
+        </button>
       </div>
+
       <form
         className="w-full max-w-sm mx-auto px-4 py-2"
         onSubmit={handleSubmit}
@@ -65,18 +82,19 @@ export default function Home() {
         </div>
       </form>
       <ul className="divide-y divide-gray-200 px-4">
-        {todosData
-          ?.slice()
-          .sort((a: TodoType, b: TodoType) => a.id - b.id)
-          .map((todo: TodoType) => (
-            <Todo
-              key={todo.id}
-              todo={todo}
-              handleEditTitle={handleEditTitle}
-              handleEditCompleted={handleEditCompleted}
-              handleDelete={handleDelete}
-            />
-          ))}
+        {Array.isArray(todosData) &&
+          todosData
+            .slice()
+            .sort((a: TodoType, b: TodoType) => a.id - b.id)
+            .map((todo: TodoType) => (
+              <Todo
+                key={todo.id}
+                todo={todo}
+                handleEditTitle={handleEditTitle}
+                handleEditCompleted={handleEditCompleted}
+                handleDelete={handleDelete}
+              />
+            ))}
       </ul>
     </div>
   );

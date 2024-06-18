@@ -15,14 +15,14 @@ export const Todo = ({ todo, handleEditTitle, handleEditCompleted, handleDelete}
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedTitle, setEditedTitle] = useState<string>(todo.title);
 
-  async function handleEdit() {
+  const handleEdit = async () => {
     setIsEditing(!isEditing);
     if (isEditing) {
       handleEditTitle(todo.id, editedTitle);
     }
   }
 
-  async function toggleTodoCompletion(isCompleted: boolean) {
+  const toggleTodoCompletion = async (isCompleted: boolean) => {
     handleEditCompleted(todo.id, !isCompleted);
   }
 
